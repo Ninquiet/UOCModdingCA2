@@ -72,5 +72,7 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+/Assets/0/
+/Assets/0
 
-/[Pp]ackages/com.singularitygroup.hotreload
+\Packages/com.singularitygroup.hotreload
