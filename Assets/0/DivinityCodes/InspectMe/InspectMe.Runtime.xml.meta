@@ -1,0 +1,14 @@
+fileFormatVersion: 2
+guid: 5a2191c8c6fe344d1871706cf6555d28
+TextScriptImporter:
+  externalObjects: {}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 256329
+  packageName: InspectMe Pro
+  packageVersion: 1.3.2 (Manipura)
+  assetPath: Assets/DivinityCodes/InspectMe/InspectMe.Runtime.xml
+  uploadId: 694840
