@@ -1,5 +1,7 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using DG.Tweening;
 using SubSystems.SpawnSystem;
 using UnityEngine;
 
@@ -33,6 +35,7 @@ namespace SubSystems.Level
         public void StartNormalModeGame()
         {
             IsOnEditMode = false;
+            MovementIsAllowed = true;
             _levelNormalController.HasControl(true);
             _levelNormalController.StartLevel(0);
             
@@ -48,7 +51,7 @@ namespace SubSystems.Level
 
         public void StartEditModeInGame()
         {
-            IsOnEditMode = false;
+            IsOnEditMode = true;
             _currentLevel = _spawnSystemController.GetCurrentLevel();
             MovementIsAllowed = true;
             _levelUIController.ShowInGameOnEdited();
@@ -78,14 +81,30 @@ namespace SubSystems.Level
 
         public void LoadLevel(List<List<int>> level)
         {
-            _currentLevel = level;
-            _spawnSystemController.SetLevel(level);
+            SpawnLevel(level);
         }
 
         public void LoadLevel()
         {
-            _currentLevel = SaveLoadController.LoadLevel(_selectedLevelToLoad);
-            _spawnSystemController.SetLevel(_currentLevel);
+            var level = SaveLoadController.LoadLevel(_selectedLevelToLoad);
+            SpawnLevel(level);
+        }
+
+        private void SpawnLevel(List<List<int>> level)
+        {
+            _currentLevel = level;
+            StartCoroutine(SpawnLevelWithDelay(level));
+        }
+        
+        private IEnumerator SpawnLevelWithDelay(List<List<int>> level)
+        {
+            LevelBlocksHandler.Clean();
+            yield return new WaitForSeconds(0.2f);
+            _spawnSystemController.Initialize();
+            LevelBlocksHandler.IsCleaning = true;
+            yield return new WaitForSeconds(0.1f);
+            LevelBlocksHandler.IsCleaning = false;
+            _spawnSystemController.SetLevel(level);
         }
 
         public void ResetLevel()
@@ -93,7 +112,26 @@ namespace SubSystems.Level
             if (_currentLevel == null)
                 return;
             
-            _spawnSystemController.SetLevel(_currentLevel);
+            LoadLevel(_currentLevel);
+        }
+        
+        private void ShowVictoryScreen()
+        {
+            if (!IsOnEditMode)
+                return;
+            
+            var sequence = DOTween.Sequence();
+
+            sequence.AppendCallback(() =>
+            {
+                _levelUIController.ShowVictoryScreen();
+            });
+            sequence.AppendInterval(0.5f);
+            sequence.AppendCallback(() =>
+            {
+                _levelUIController.HideVictoryScreen();
+            });
+            sequence.AppendInterval(0.2f);
         }
         
         private void Awake()
@@ -111,6 +149,7 @@ namespace SubSystems.Level
         {
             if (allBlocksPressed)
             {
+                ShowVictoryScreen();
                 OnLevelCompleted?.Invoke();
             }
         }

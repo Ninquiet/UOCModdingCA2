@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using SubSystems.SceneObjects;
 using UnityEngine;
@@ -28,7 +29,7 @@ namespace SubSystems.SpawnSystem
         private Transform _levelRoot;
         
         public List<List<int>> GetCurrentLevel() => _currentLevel;
-        
+
         public void SelectObject (SpawnableObject selectedObject)
         {
             _selectedObject = selectedObject;
@@ -86,16 +87,23 @@ namespace SubSystems.SpawnSystem
 
         public void DestroyObjectOnCoordinate(int column, int row)
         {
-            foreach (var spawnedObject in _spawnedObjects)
+            if (_spawnedObjects != null)
             {
-                if (spawnedObject.rowIndex == row && spawnedObject.columnIndex == column)
+                for (int i = _spawnedObjects.Count - 1; i >= 0; i--)
                 {
-                    Destroy(spawnedObject.gameObject);
-                    _spawnedObjects.Remove(spawnedObject);
-                    return;
+                    var spawnedObject = _spawnedObjects[i];
+
+                    if (spawnedObject == null)
+                        continue;
+
+                    if (spawnedObject.rowIndex == row && spawnedObject.columnIndex == column)
+                    {
+                        Destroy(spawnedObject.gameObject);
+                        _spawnedObjects.RemoveAt(i);
+                    }
                 }
             }
-            
+
             _currentLevel[row][column] = 0;
         }
 

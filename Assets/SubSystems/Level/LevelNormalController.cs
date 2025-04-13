@@ -14,11 +14,14 @@ namespace SubSystems.Level
         private LevelController _levelController;
         private LevelUIController _levelUIController;
         private int _currentLevelIndex;
+        private bool _isSwitchingLevel;
 
         public void HasControl(bool hasControl)
         {
             if (_hasControl == hasControl)
                 return;
+            
+            _hasControl = hasControl;
 
             if (hasControl)
             {
@@ -39,8 +42,10 @@ namespace SubSystems.Level
 
         private void OnLevelCompleted()
         {
-            if (!_hasControl)
+            if (!_hasControl || _isSwitchingLevel)
                 return;
+            
+            _isSwitchingLevel = true;
             
             if (_currentLevelIndex + 1 >= _levelJsons.Length)
             {
@@ -50,7 +55,7 @@ namespace SubSystems.Level
             
             _currentLevelIndex++;
             StartLevel(_currentLevelIndex);
-            
+            _isSwitchingLevel = false;
         }
         
         private void ShowVictoryScreen()
