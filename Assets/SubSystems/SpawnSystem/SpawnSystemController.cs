@@ -8,6 +8,7 @@ namespace SubSystems.SpawnSystem
     public class SpawnSystemController : MonoBehaviour
     {
         [Header("Spawnable Objects")]
+        [SerializeField]
         private SpawnableObject[] _spawnableObjects;
         
         [Header("References")]
@@ -24,6 +25,7 @@ namespace SubSystems.SpawnSystem
         private List<SpawnableObject> _spawnedObjects = new List<SpawnableObject>();
         private List<SpawnableObject> _emptyObjects = new List<SpawnableObject>();
         private SpawnableObject _selectedObject;
+        private Transform _levelRoot;
         
         public List<List<int>> GetCurrentLevel() => _currentLevel;
         
@@ -32,42 +34,47 @@ namespace SubSystems.SpawnSystem
             _selectedObject = selectedObject;
         }
 
+        public void Initialize()
+        {
+            InitializeSpawnSystem(rows, columns);
+        }
+
         public void SetLevel(List<List<int>> level)
         {
             InitializeSpawnSystem(rows, columns);
             
-            // for (int i = 0; i < level.Count; i++)
-            // {
-            //     for (int j = 0; j < level[i].Count; j++)
-            //     {
-            //         if (level[i][j] == 0)
-            //             continue;
-            //         
-            //         if (_spawnableObjects.Length <= level[i][j])
-            //             continue;
-            //         
-            //         var objectToSpawn = _spawnableObjects[level[i][j]];
-            //         if (objectToSpawn == null)
-            //             continue;
-            //         
-            //         SpawnObjectOnCoordinate(j, i, objectToSpawn);
-            //     }
-            // }
+            for (int i = 0; i < level.Count; i++)
+            {
+                for (int j = 0; j < level[i].Count; j++)
+                {
+                    if (level[i][j] == 0)
+                        continue;
+                    
+                    if (_spawnableObjects.Length <= level[i][j])
+                        continue;
+                    
+                    var objectToSpawn = _spawnableObjects[level[i][j]];
+                    if (objectToSpawn == null)
+                        continue;
+                    
+                    SpawnObjectOnCoordinate(j, i, objectToSpawn);
+                }
+            }
         }
         
         public void SpawnSelectedObjectOnCoordinate(int column, int row)
         {
+            if (_selectedObject == null)
+                return;
+            
             SpawnObjectOnCoordinate(column, row, _selectedObject);
         }
 
         private void SpawnObjectOnCoordinate(int column, int row, SpawnableObject objectToSpawn)
         {
-            if (_selectedObject == null)
-                return;
-            
             DestroyObjectOnCoordinate(column, row);
             
-            var newObject = Instantiate(objectToSpawn, transform);
+            var newObject = Instantiate(objectToSpawn, GetLocalRoot());
             newObject.transform.localPosition =
                 new Vector3(column * GameBaseValues.GRID_SIZE, row * GameBaseValues.GRID_SIZE, 0);
             
@@ -99,12 +106,11 @@ namespace SubSystems.SpawnSystem
 
         private void InitializeSpawnSystem(int rows, int columns)
         {
-            // TODO: ESTO CREA NUEVOS OBJETOS DE ALGUNA FORMA, NO Sé TOCA REVISAR TENGO SUEñO
             DestroyAllSpawnedObjects();
 
-            for (int i = 0; i < rows; i++)
+            for (int i = 0; i < columns; i++)
             {
-                _currentLevel.Add(new List<int>(columns));
+                _currentLevel.Add(new List<int>(rows));
             }
             for (int i = 0; i < columns; i++)
             {
@@ -118,7 +124,7 @@ namespace SubSystems.SpawnSystem
             {
                 for (int y = 0; y < columns; y++)
                 {
-                    SpawnableObject spawnedObject = Instantiate(_spawnableEmptyObject,transform);
+                    SpawnableObject spawnedObject = Instantiate(_spawnableEmptyObject,GetLocalRoot());
                     spawnedObject.transform.localPosition =
                         new Vector3(x * GameBaseValues.GRID_SIZE, y * GameBaseValues.GRID_SIZE, 0);
                     
@@ -150,7 +156,7 @@ namespace SubSystems.SpawnSystem
 
         private void SpawnWall(Vector3 localPosition)
         {
-            SpawnableObject wall = Instantiate(_spawnableWallObject, transform);
+            SpawnableObject wall = Instantiate(_spawnableWallObject, GetLocalRoot());
             wall.transform.localPosition = localPosition;
             wall.columnIndex = -1;
             wall.rowIndex = -1;
@@ -158,25 +164,40 @@ namespace SubSystems.SpawnSystem
         
         private void DestroyAllSpawnedObjects()
         {
-            for (int i = _spawnedObjects.Count - 1; i >= 0; i--)
-            {
-                if (_spawnedObjects[i] == null)
-                    continue;
-                
-                Destroy(_spawnedObjects[i].gameObject);
-            }
-
-            for (int i =_emptyObjects.Count - 1; i >= 0; i--)
-            {
-                if (_emptyObjects[i] == null)
-                    continue;
-                
-                Destroy(_emptyObjects[i].gameObject);
-            }
+            ResetRoot();
             
             _spawnedObjects.Clear();
             _emptyObjects.Clear();
             _currentLevel = new List<List<int>>();
+        }
+
+        private void ResetRoot()
+        {
+            GameObject oldRootGO = null;
+            if (_levelRoot != null)
+            {
+                _levelRoot.name = "oldRoot";
+                oldRootGO = _levelRoot.gameObject;
+                _levelRoot = null;
+            }
+
+            GetLocalRoot();
+            
+            if (oldRootGO != null)
+                Destroy(oldRootGO);
+        }
+
+        private Transform GetLocalRoot()
+        {
+            if (_levelRoot == null)
+            {
+                _levelRoot = new GameObject().transform;
+                _levelRoot.name = "LevelRoot";
+                _levelRoot.parent = this.transform;
+                _levelRoot.localPosition = Vector3.zero;
+            }
+
+            return _levelRoot;
         }
     }
 }

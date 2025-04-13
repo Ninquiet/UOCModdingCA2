@@ -7,9 +7,20 @@ namespace SubSystems.Level
     public class SaveLoadController
     {
         [System.Serializable]
-        private class LevelDataWrapper
+        public class LevelDataWrapper
         {
-            public List<List<int>> level;
+            public List<IntArrayWrapper> level;
+        }
+        
+        [System.Serializable]
+        public class IntArrayWrapper
+        {
+            public int[] row;
+
+            public IntArrayWrapper(List<int> rowList)
+            {
+                row = rowList.ToArray();
+            }
         }
 
         private static string GetFilePath(int slotIndex)
@@ -19,13 +30,17 @@ namespace SubSystems.Level
 
         public static void SaveLevel(List<List<int>> currentLevel, int slotIndex)
         {
-            LevelDataWrapper wrapper = new LevelDataWrapper { level = currentLevel };
+            var levelWrapped = new List<IntArrayWrapper>();
+            foreach (var row in currentLevel)
+            {
+                levelWrapped.Add(new IntArrayWrapper(row));
+            }
+
+            LevelDataWrapper wrapper = new LevelDataWrapper { level = levelWrapped };
             string json = JsonUtility.ToJson(wrapper, true);
 
             string path = GetFilePath(slotIndex);
             File.WriteAllText(path, json);
-
-            Debug.Log($"Level saved to {path}");
         }
 
         public static List<List<int>> LoadLevel(int slotIndex)
@@ -41,7 +56,32 @@ namespace SubSystems.Level
             string json = File.ReadAllText(path);
             LevelDataWrapper wrapper = JsonUtility.FromJson<LevelDataWrapper>(json);
 
-            return wrapper.level ?? new List<List<int>>();
+            if (wrapper == null || wrapper.level == null)
+                return new List<List<int>>();
+
+            var result = new List<List<int>>();
+            foreach (var rowWrapper in wrapper.level)
+            {
+                result.Add(new List<int>(rowWrapper.row));
+            }
+
+            return result;
+        }
+
+        public static List<List<int>> ParseJsonToLevel(string json)
+        {
+            var wrapper = JsonUtility.FromJson<SaveLoadController.LevelDataWrapper>(json);
+    
+            if (wrapper?.level == null)
+                return new List<List<int>>();
+
+            var result = new List<List<int>>();
+            foreach (var rowWrapper in wrapper.level)
+            {
+                result.Add(new List<int>(rowWrapper.row));
+            }
+
+            return result;
         }
     }
 }

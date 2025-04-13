@@ -1,3 +1,4 @@
+using SubSystems.Level;
 using SubSystems.SceneObjects;
 using UnityEngine;
 
@@ -24,6 +25,9 @@ namespace SubSystems.SpawnSystem
         
         private void CheckIfMousePressed()
         {
+            if (LevelController.MovementIsAllowed || !LevelController.IsOnEditMode)
+                return;
+            
             if ( Input.GetMouseButtonDown(0))
             {
                 if (_mouseHoveringColumnIndex == -1 || _mouseHoveringRowIndex == -1)

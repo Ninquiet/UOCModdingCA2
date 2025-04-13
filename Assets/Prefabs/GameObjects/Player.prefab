@@ -172,6 +172,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   previewImage: {fileID: -2402063034215647507, guid: 74b13813f13237e4897201aa8652bc3f, type: 3}
+  columnIndex: 0
+  rowIndex: 0
+  spawnableObjectIndex: 1
 --- !u!1 &2164539378012251141
 GameObject:
   m_ObjectHideFlags: 0
