@@ -89,6 +89,11 @@ namespace SubSystems.Level
             var level = SaveLoadController.LoadLevel(_selectedLevelToLoad);
             SpawnLevel(level);
         }
+        
+        public void ExitGame()
+        {
+            Application.Quit();
+        }
 
         private void SpawnLevel(List<List<int>> level)
         {
